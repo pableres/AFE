@@ -1,0 +1,23 @@
+#package needed.
+
+ipak <- function(pkg){
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if (length(new.pkg)) 
+    install.packages(new.pkg, dependencies = TRUE)
+  sapply(pkg, require, character.only = TRUE)
+}
+
+# usage
+packages <- c("parameters","apa","haven","ggplot2","ggpubr","gridExtra","apaTables", "reshape", "GPArotation", "mvtnorm", "psych", "psychometric", "lavaan", "nFactors", "semPlot", "lavaan", "MVN", "semTools")
+ipak(packages)
+
+#n factors ASI
+results_nfactorASI<-n_factors(ASI, rotate = "varimax", fm = "mle", n = NULL)
+plot(results_nfactorASI)
+results_nfactorASI
+as.data.frame(results_nfactorASI)
+summary(results_nfactorASI)
+
+#Exploratory Factorial ANalysis ASI
+ASIfactor<-fa(ASI,nfactors = 2,fm = "ml",rotate ="varimax",cor = "poly")
+print(ASIfactor,digits = 2,cut = .30,sort=TRUE)
