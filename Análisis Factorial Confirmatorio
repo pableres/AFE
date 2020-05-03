@@ -1,0 +1,27 @@
+ipak <- function(pkg){
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if (length(new.pkg)) 
+    install.packages(new.pkg, dependencies = TRUE)
+  sapply(pkg, require, character.only = TRUE)
+}
+# usage
+packages <- c("parameters","apa","haven","ggplot2","ggpubr","gridExtra","apaTables", "reshape", "GPArotation", "mvtnorm", "psych", "psychometric", "lavaan", "nFactors", "semPlot", "lavaan", "MVN", "semTools")
+ipak(packages)
+
+ASIconf
+
+#Especificación del modelo conceptual (primero unidimensional, luego bifactorial)
+Onefactor<-'Sexs =~ X1 + X2 + X3 + X4 + X5 + X6 + X7 + X8 + X9 + X10 + X11 + X12
+'
+Twofactor<-'Host =~ X1 + X2 + X3 + X4 + X5 + X6 
+Benev =~ X7 + X8 + X9 + X10 + X11 + X12'
+
+#realización del AFC para la primera estructura
+CFAone <- cfa(Onefactor,orthogonal=TRUE, data=ASIconf, estimator="WLSMV",ordered =names(ASIconf))
+summary(CFAone, fit.measures=TRUE)
+
+#Análisis Factorial Confirmatorio para la segunda dimensionalidad.
+CFAtworele <- cfa(Twofactor,orthogonal=FALSE, data=ASIconf, estimator="WLSMV",ordered =names(ASIconf))
+summary(CFAtworele, fit.measures=TRUE)
+fitMeasures(CFAtworele)
+semPaths(CFAtworele, intercepts = FALSE,edge.label.cex=1.5, optimizeLatRes = TRUE, groups = "lat",pastel = TRUE, exoVar = FALSE, sizeInt=5,edge.color ="black",esize = 6, label.prop=2,sizeLat = 6,"std", layout="circle2")
