@@ -1,0 +1,70 @@
+#Cargar y utilizar función IPAK
+#ver vídeo https://www.youtube.com/watch?v=UjQz9SxG9rk
+
+ipak <- function(pkg){
+  new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+  if (length(new.pkg)) 
+    install.packages(new.pkg, dependencies = TRUE)
+  sapply(pkg, require, character.only = TRUE)
+}
+
+# usage
+packages <- c("dplyr","readxl","DescTools","plyr","openxlsx","haven","foreign","apa","haven","ggplot2","ggpubr","gridExtra","apaTables", "reshape", "GPArotation", "mvtnorm", "psych", "psychometric", "lavaan", "psycho", "semPlot", "MVN", "semTools")
+ipak(packages)
+
+#establecer el directorio de trabajo y cargar mi data frame
+setwd('C:/Users/pable/Desktop/Escritorio antiguo/ETI SR')
+items <- read_sav("base datos ETI.sav")
+View(items)
+
+#calcular algunas propiedades psicométricas de una subescala
+General<-data.frame(cbind(items$ETI_SR1, items$ETI_SR2, items$ETI_SR3, items$ETI_SR4, items$ETI_SR5, items$ETI_SR6, items$ETI_SR7, items$ETI_SR8, items$ETI_SR9, items$ETI_SR10, items$ETI_SR11))
+names(General)<- c( "1", "2","3","4","5","6","7","8","9","10","11")	
+General_tetra<-tetrachoric(General)
+psych::alpha(General_tetra$rho)
+describe(General)
+alphagen<-psych::alpha(General_tetra$rho)
+descrgen<-describe(General)
+
+#OTROS INDICADORES DE FIABILIDAD
+#para beta de guttman:
+splitHalf(General_tetra$rho) 
+#para alfa de Cronbach clásico
+alpha(General)
+#para omega ordinal (hay que calcularlo con todos los ítems!!!)
+omega(General_tetra$rho) 
+#omega normal
+omega(General) 
+
+
+#calcular algunas propiedades psicométricas de una subescala
+Physical<-data.frame(cbind(items$ETI_SR12, items$ETI_SR13, items$ETI_SR14, items$ETI_SR15, items$ETI_SR16))
+View(Physical)
+names(Physical)<- c("12","13","14","15","16")	
+Physical_tetra<-tetrachoric(Physical)
+psych::alpha(Physical_tetra$rho)
+describe(Physical)
+alphaphy<-psych::alpha(Physical_tetra$rho)
+descrphy<-describe(Physical)
+
+
+#construimos la tabla en normas APA en Excel
+lgen <- list(c( 1:11),descrgen$mean,descrgen$sd,descrgen$skew,descrgen$kurtosis,alphagen$alpha.drop$raw_alpha, alphagen$item.stats$r.drop, alphagen$total$raw_alpha)
+lphy <- list(c(12:16),descrphy$mean,descrphy$sd,descrphy$skew,descrphy$kurtosis,alphaphy$alpha.drop$raw_alpha, alphaphy$item.stats$r.drop, alphaphy$total$raw_alpha)
+
+lgen<-as.data.frame(lgen)
+lphy<-as.data.frame(lphy)
+
+lgen <- lgen %>% 
+  mutate_if(is.numeric, round, digits = 2)
+lgen
+
+lphy<- lphy %>% 
+  mutate_if(is.numeric, round, digits = 2)
+lphy
+
+names(lgen)<- c("item","Mean","SD","Skew","Kutosis","alpha - item", "citc", "alpha")
+names(lphy)<- c("item","Mean","SD","Skew","Kutosis","alpha - item", "citc", "alpha")
+
+tablageneral<-rbind(lgen,lphy)
+write.xlsx(tablageneral, "chupito de R.xlsx", colNames=TRUE)
